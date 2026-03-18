@@ -488,7 +488,7 @@ export default function JourneyPage() {
               )}
               <form
                 onSubmit={handleSendMessage}
-                className="flex items-end gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 focus-within:border-primary/50 focus-within:shadow-sm transition-all"
+                className="flex items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 focus-within:border-primary/50 focus-within:shadow-sm transition-all"
               >
                 <textarea
                   ref={inputRef}
@@ -509,7 +509,7 @@ export default function JourneyPage() {
                 {input.trim() && !isStreaming && (
                   <button
                     type="submit"
-                    className="shrink-0 text-primary hover:text-primary-hover transition-colors cursor-pointer pb-0.5"
+                    className="shrink-0 text-primary hover:text-primary-hover transition-colors cursor-pointer"
                   >
                     <svg
                       width="18"
