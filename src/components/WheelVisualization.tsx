@@ -179,7 +179,6 @@ export default function WheelVisualization({
               y={labelPos.y}
               textAnchor={anchor}
               dominantBaseline="middle"
-              className="font-sans"
               fontSize={11}
               fill={
                 isActive

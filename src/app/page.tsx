@@ -17,10 +17,10 @@ export default function LandingPage() {
         </p>
 
         {/* Description */}
-        <p className="font-sans text-base text-foreground leading-relaxed mb-3">
+        <p className="text-base text-foreground leading-relaxed mb-3">
           This is not an assessment tool. It&apos;s a practice in honesty.
         </p>
-        <p className="font-sans text-sm text-foreground-muted leading-relaxed mb-10">
+        <p className="text-sm text-foreground-muted leading-relaxed mb-10">
           You&apos;ll be guided through eight dimensions of your life — not to
           analyze, but to feel into where things are flowing and where they feel
           heavier. An AI companion will walk alongside you, asking the kind of
@@ -30,7 +30,7 @@ export default function LandingPage() {
         {/* CTA */}
         <Link
           href="/journey"
-          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-sans text-base font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-base font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
         >
           Begin Your Journey
           <svg
@@ -47,14 +47,14 @@ export default function LandingPage() {
         </Link>
 
         {/* Meta info */}
-        <p className="mt-6 font-sans text-xs text-foreground-muted">
+        <p className="mt-6 text-xs text-foreground-muted">
           About 30 minutes &middot; 8 dimensions &middot; Deeply personal
         </p>
       </div>
 
       {/* Footer */}
       <footer className="absolute bottom-6 text-center">
-        <p className="font-sans text-xs text-foreground-muted opacity-60">
+        <p className="text-xs text-foreground-muted opacity-60">
           The Argonauts &middot; Explorer Membership
         </p>
       </footer>

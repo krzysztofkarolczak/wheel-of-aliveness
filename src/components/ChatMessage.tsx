@@ -76,8 +76,8 @@ export default function ChatMessage({ message, isStreaming }: ChatMessageProps) 
       <div
         className={`${
           isAssistant
-            ? 'font-serif text-lg leading-relaxed text-foreground'
-            : 'font-sans text-base leading-relaxed text-foreground-muted'
+            ? 'text-base leading-relaxed text-foreground'
+            : 'text-sm leading-relaxed text-foreground-muted'
         }`}
       >
         {renderedContent}

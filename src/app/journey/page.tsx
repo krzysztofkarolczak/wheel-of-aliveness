@@ -297,7 +297,7 @@ export default function JourneyPage() {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border-light">
-        <h2 className="font-serif text-sm text-foreground-muted">
+        <h2 className="text-sm text-foreground-muted">
           Wheel of Aliveness
         </h2>
         {!isSynthesis && (
@@ -322,14 +322,14 @@ export default function JourneyPage() {
               key={currentDimension.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-6 font-serif text-base text-center"
+              className="mt-6 text-base text-center"
               style={{ color: currentDimension.color }}
             >
               {currentDimension.name}
             </motion.p>
           )}
           {isSynthesis && (
-            <p className="mt-6 font-serif text-base text-foreground-muted">
+            <p className="mt-6 text-base text-foreground-muted">
               Your Wheel
             </p>
           )}
@@ -341,7 +341,7 @@ export default function JourneyPage() {
           {!isSynthesis && (
             <div className="lg:hidden px-6 pt-4 pb-2">
               <p
-                className="font-serif text-sm font-medium"
+                className="text-sm font-medium"
                 style={{ color: currentDimension.color }}
               >
                 {currentDimIndex + 1}/8 &middot; {currentDimension.name}
@@ -408,7 +408,7 @@ export default function JourneyPage() {
               >
                 <button
                   onClick={handleNextDimension}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-sans text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {currentDimIndex < 7
                     ? `Continue to ${DIMENSIONS[currentDimIndex + 1].name}`
@@ -438,7 +438,7 @@ export default function JourneyPage() {
               >
                 <button
                   onClick={handleComplete}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-sans text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Complete Your Journey
                 </button>
@@ -450,66 +450,60 @@ export default function JourneyPage() {
 
           {/* Input area */}
           {phase === 'conversation' && (
-            <form
-              onSubmit={handleSendMessage}
-              className="px-6 pb-6 pt-2"
-            >
-              <div className="relative">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  placeholder={
-                    messages.length <= 1
-                      ? 'Take a moment... then share what comes up.'
-                      : 'Continue sharing...'
-                  }
-                  disabled={isStreaming}
-                  rows={1}
-                  className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 pr-10 font-sans text-sm text-foreground placeholder:text-foreground-muted/60 focus:outline-none focus:border-primary/40 transition-colors disabled:opacity-50 min-h-[44px] max-h-[120px]"
-                />
-                {input.trim() && !isStreaming && (
-                  <button
-                    type="submit"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-primary hover:text-primary-hover transition-colors cursor-pointer"
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                )}
-              </div>
+            <div className="px-6 pb-6 pt-2 space-y-2">
               {showRatingPrompt && !isStreaming && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.4 }}
-                  className="mt-2 flex justify-end"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
                   <button
                     type="button"
                     onClick={handleReadyToRate}
-                    className="text-xs font-sans px-3 py-1.5 rounded-full border border-border hover:border-foreground-muted transition-colors cursor-pointer text-foreground-muted hover:text-foreground"
+                    className="w-full py-2.5 rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                   >
                     I&apos;m ready to rate this dimension
                   </button>
                 </motion.div>
               )}
-            </form>
+              <form onSubmit={handleSendMessage}>
+                <div className="relative">
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Continue sharing..."
+                    disabled={isStreaming}
+                    rows={1}
+                    className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 pr-10 text-sm text-foreground placeholder:text-foreground-muted/60 focus:outline-none focus:border-primary/40 transition-colors disabled:opacity-50 min-h-[44px] max-h-[120px]"
+                  />
+                  {input.trim() && !isStreaming && (
+                    <button
+                      type="submit"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-primary hover:text-primary-hover transition-colors cursor-pointer"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      >
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
           )}
         </div>
       </main>
@@ -528,29 +522,29 @@ function WelcomeScreen({ onBegin }: { onBegin: () => void }) {
         transition={{ duration: 0.6 }}
         className="max-w-md text-center"
       >
-        <h1 className="font-serif text-3xl font-medium text-foreground mb-6">
+        <h1 className="text-3xl font-medium text-foreground mb-6">
           Welcome
         </h1>
-        <p className="font-sans text-base text-foreground leading-relaxed mb-4">
+        <p className="text-base text-foreground leading-relaxed mb-4">
           You&apos;re about to reflect on eight dimensions of your life. Not to
           analyze — but to feel into where things are alive and where they feel
           heavier.
         </p>
-        <p className="font-sans text-sm text-foreground-muted leading-relaxed mb-4">
+        <p className="text-sm text-foreground-muted leading-relaxed mb-4">
           You won&apos;t need your strategic mind here. You&apos;ll need
           something deeper: the willingness to listen to what you already know
           but haven&apos;t said out loud.
         </p>
-        <p className="font-sans text-sm text-foreground-muted leading-relaxed mb-8">
+        <p className="text-sm text-foreground-muted leading-relaxed mb-8">
           Respond intuitively. Your first instinct is usually the most honest.
         </p>
         <button
           onClick={onBegin}
-          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-sans text-base font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-base font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
         >
           Let&apos;s begin
         </button>
-        <p className="mt-4 font-sans text-xs text-foreground-muted">
+        <p className="mt-4 text-xs text-foreground-muted">
           About 30 minutes
         </p>
       </motion.div>
@@ -581,7 +575,7 @@ function ReflectionPanel({
       className="space-y-5 py-4"
     >
       <div>
-        <label className="block font-sans text-sm text-foreground mb-2">
+        <label className="block text-sm text-foreground mb-2">
           What are you ready to let go of?
         </label>
         <p className="text-xs text-foreground-muted mb-2">
@@ -593,12 +587,12 @@ function ReflectionPanel({
           onChange={(e) => onLettingGoChange(e.target.value)}
           placeholder="What am I carrying that's weighing me down?"
           rows={2}
-          className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 font-sans text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
+          className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
         />
       </div>
 
       <div>
-        <label className="block font-sans text-sm text-foreground mb-2">
+        <label className="block text-sm text-foreground mb-2">
           What do you want to invite in?
         </label>
         <p className="text-xs text-foreground-muted mb-2">
@@ -609,14 +603,14 @@ function ReflectionPanel({
           onChange={(e) => onInvitingInChange(e.target.value)}
           placeholder="What's trying to emerge in this part of my life?"
           rows={2}
-          className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 font-sans text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
+          className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
         />
       </div>
 
       <button
         onClick={onComplete}
         disabled={!lettingGo.trim() || !invitingIn.trim()}
-        className="w-full py-2.5 rounded-full font-sans text-sm font-medium text-white transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
+        className="w-full py-2.5 rounded-full text-sm font-medium text-white transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
         style={{ backgroundColor: dimensionColor }}
       >
         Complete this dimension
@@ -643,10 +637,10 @@ function CompleteScreen({
           transition={{ duration: 0.8 }}
           className="text-center mb-8"
         >
-          <h1 className="font-serif text-3xl font-medium text-foreground mb-3">
+          <h1 className="text-3xl font-medium text-foreground mb-3">
             Your Wheel of Aliveness
           </h1>
-          <p className="font-sans text-sm text-foreground-muted">
+          <p className="text-sm text-foreground-muted">
             This is your honest snapshot — where aliveness flows and where
             it&apos;s stuck.
           </p>
@@ -673,7 +667,7 @@ function CompleteScreen({
             transition={{ duration: 0.6, delay: 0.6 }}
             className="max-w-xl mx-auto mb-10"
           >
-            <div className="font-serif text-lg leading-relaxed text-foreground whitespace-pre-line">
+            <div className="text-base leading-relaxed text-foreground whitespace-pre-line">
               {synthesis}
             </div>
           </motion.div>
@@ -685,13 +679,13 @@ function CompleteScreen({
           transition={{ delay: 1 }}
           className="text-center space-y-3"
         >
-          <p className="font-sans text-xs text-foreground-muted">
+          <p className="text-xs text-foreground-muted">
             Keep this. Come back to it. At the end of your Explorer journey,
             complete it again. The shift might surprise you.
           </p>
           <button
             onClick={onStartOver}
-            className="text-sm font-sans text-foreground-muted hover:text-foreground transition-colors underline underline-offset-4 cursor-pointer"
+            className="text-sm text-foreground-muted hover:text-foreground transition-colors underline underline-offset-4 cursor-pointer"
           >
             Start a new wheel
           </button>
