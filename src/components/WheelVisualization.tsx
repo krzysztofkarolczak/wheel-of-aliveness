@@ -18,9 +18,9 @@ function degToRad(deg: number): number {
   return (deg * Math.PI) / 180;
 }
 
-/** Start angle (in degrees, 0 = top/12 o'clock, clockwise) for sector i */
+/** Start angle for sector i, centered so sector 0 is at 12 o'clock */
 function sectorStartDeg(i: number): number {
-  return i * (360 / TOTAL) + GAP_DEG / 2 - 90;
+  return i * (360 / TOTAL) + GAP_DEG / 2 - 90 - (360 / TOTAL) / 2;
 }
 
 function sectorEndDeg(i: number): number {
