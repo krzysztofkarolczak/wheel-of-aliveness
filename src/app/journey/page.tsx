@@ -316,29 +316,30 @@ export default function JourneyPage() {
             currentDimension={currentDimIndex}
             size={340}
           />
-          {!isSynthesis && (
-            <motion.p
-              key={currentDimension.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="-mt-1 text-sm font-medium text-center"
-              style={{ color: currentDimension.color }}
-            >
-              {currentDimIndex + 1}/8 &middot; {currentDimension.name}
-            </motion.p>
-          )}
-          {isSynthesis && (
-            <p className="mt-2 text-sm text-foreground-muted">
-              Your Wheel
-            </p>
-          )}
         </div>
       </header>
 
       {/* Conversation panel */}
       <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full overflow-hidden">
+        {/* Dimension header */}
+        {!isSynthesis && (
+          <motion.div
+            key={currentDimension.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="px-6 pt-4 pb-2"
+          >
+            <p
+              className="text-sm font-medium"
+              style={{ color: currentDimension.color }}
+            >
+              {currentDimIndex + 1}/8 &middot; {currentDimension.name}
+            </p>
+          </motion.div>
+        )}
+
         {/* Messages area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
             <AnimatePresence mode="wait">
               {messages
                 .filter((m) => !m.hidden)
