@@ -75,7 +75,7 @@ export default function WheelVisualization({
   size = 360,
   showLabels = true,
 }: WheelVisualizationProps) {
-  const margin = showLabels ? 80 : 20;
+  const margin = showLabels ? 65 : 14;
   const maxRadius = (size - margin * 2) / 2;
   const viewBox = size / 2 + margin;
 
