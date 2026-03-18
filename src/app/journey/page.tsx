@@ -560,8 +560,91 @@ function JourneyContent() {
   }
 
 
+  // ─── Synthesis page ─────────────────────────────────────────
+  if (stage === 'synthesis') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-3xl mx-auto px-6 py-10">
+          {/* Animated wheel */}
+          <motion.div
+            data-wheel-pdf
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="flex justify-center mb-6"
+          >
+            <WheelVisualization
+              ratings={ratings}
+              currentDimension={-1}
+              size={420}
+              showLabels={true}
+            />
+          </motion.div>
+
+          {/* Synthesis text */}
+          {synthesisText && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="max-w-xl mx-auto mb-10"
+            >
+              <div className="text-base leading-relaxed text-foreground space-y-5">
+                {synthesisText.split('\n\n').map((paragraph, i) => (
+                  <p key={i}>{renderMarkdown(paragraph.trim())}</p>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Streaming indicator */}
+          {isStreaming && !synthesisText && (
+            <div className="flex justify-center py-8">
+              <div className="flex gap-1.5">
+                <span className="typing-dot w-2 h-2 rounded-full bg-foreground-muted" />
+                <span className="typing-dot w-2 h-2 rounded-full bg-foreground-muted" />
+                <span className="typing-dot w-2 h-2 rounded-full bg-foreground-muted" />
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          {synthesisText && !isStreaming && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-center space-y-4"
+            >
+              <p className="text-xs text-foreground-muted">
+                Keep this. Come back to it. At the end of your Explorer journey,
+                complete it again. The shift might surprise you.
+              </p>
+              <button
+                onClick={handleDownloadPDF}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                Download PDF
+              </button>
+              <div>
+                <button
+                  onClick={handleStartOver}
+                  className="text-xs text-foreground-muted hover:text-foreground transition-colors underline underline-offset-4 cursor-pointer"
+                >
+                  Start a new wheel
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const currentDimension = DIMENSIONS[currentDimIndex];
-  const isSynthesis = stage === 'synthesis';
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -571,12 +654,10 @@ function JourneyContent() {
           <h2 className="text-sm text-foreground-muted">
             Wheel of Aliveness
           </h2>
-          {!isSynthesis && (
-            <DimensionProgress
-              currentIndex={currentDimIndex}
-              completedCount={completedDimensions.length}
-            />
-          )}
+          <DimensionProgress
+            currentIndex={currentDimIndex}
+            completedCount={completedDimensions.length}
+          />
         </div>
 
         {/* Wheel — always visible at top */}
@@ -592,21 +673,19 @@ function JourneyContent() {
       {/* Conversation panel — scrollable */}
       <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full min-h-0">
         {/* Dimension header */}
-        {!isSynthesis && (
-          <motion.div
-            key={currentDimension.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="px-6 pt-4 pb-2"
+        <motion.div
+          key={currentDimension.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="px-6 pt-4 pb-2"
+        >
+          <p
+            className="text-sm font-medium"
+            style={{ color: currentDimension.color }}
           >
-            <p
-              className="text-sm font-medium"
-              style={{ color: currentDimension.color }}
-            >
-              {currentDimIndex + 1}/8 &middot; {currentDimension.name}
-            </p>
-          </motion.div>
-        )}
+            {currentDimIndex + 1}/8 &middot; {currentDimension.name}
+          </p>
+        </motion.div>
 
         {/* Messages area */}
         <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
@@ -685,37 +764,6 @@ function JourneyContent() {
                     <path d="M3 8h10M9 4l4 4-4 4" />
                   </svg>
                 </button>
-              </motion.div>
-            )}
-
-            {/* Synthesis complete — download + start over */}
-            {isSynthesis && !isStreaming && synthesisText && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="pt-6 space-y-3 text-center"
-              >
-                <p className="text-xs text-foreground-muted">
-                  Keep this. Come back to it. The shift might surprise you.
-                </p>
-                <button
-                  onClick={handleDownloadPDF}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                  </svg>
-                  Download PDF
-                </button>
-                <div>
-                  <button
-                    onClick={handleStartOver}
-                    className="text-xs text-foreground-muted hover:text-foreground transition-colors underline underline-offset-4 cursor-pointer"
-                  >
-                    Start a new wheel
-                  </button>
-                </div>
               </motion.div>
             )}
 
