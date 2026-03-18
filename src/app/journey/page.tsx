@@ -242,6 +242,11 @@ export default function JourneyPage() {
       invitingIn: invitingIn.trim(),
     };
 
+    const dimId = DIMENSIONS[currentDimIndex].id;
+
+    const newCompleted = [...completedDimensions, response];
+    setCompletedDimensions(newCompleted);
+
     // Fetch conversation summary in background
     fetch('/api/chat', {
       method: 'POST',
@@ -254,17 +259,15 @@ export default function JourneyPage() {
     })
       .then((r) => r.json())
       .then((data) => {
-        response.conversationSummary = data.summary;
         setCompletedDimensions((prev) =>
           prev.map((d) =>
-            d.dimensionId === response.dimensionId ? response : d
+            d.dimensionId === dimId
+              ? { ...d, conversationSummary: data.summary }
+              : d
           )
         );
       })
       .catch(() => {});
-
-    const newCompleted = [...completedDimensions, response];
-    setCompletedDimensions(newCompleted);
 
     // Get Claude's closing reflection
     await streamFromAPI(apiMessages, {
