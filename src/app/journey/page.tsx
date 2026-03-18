@@ -6,7 +6,7 @@ import { DIMENSIONS } from '@/lib/dimensions';
 import { UIMessage, DimensionResponse } from '@/lib/types';
 import WheelVisualization from '@/components/WheelVisualization';
 import RatingInput from '@/components/RatingInput';
-import ChatMessage from '@/components/ChatMessage';
+import ChatMessage, { renderMarkdown } from '@/components/ChatMessage';
 import DimensionProgress from '@/components/DimensionProgress';
 
 type Phase =
@@ -693,8 +693,10 @@ function CompleteScreen({
             transition={{ duration: 0.6, delay: 0.6 }}
             className="max-w-xl mx-auto mb-10"
           >
-            <div className="text-base leading-relaxed text-foreground whitespace-pre-line">
-              {synthesis}
+            <div className="text-base leading-relaxed text-foreground space-y-4">
+              {synthesis.split('\n\n').map((paragraph, i) => (
+                <p key={i}>{renderMarkdown(paragraph.trim())}</p>
+              ))}
             </div>
           </motion.div>
         )}

@@ -9,7 +9,7 @@ interface ChatMessageProps {
   isStreaming?: boolean;
 }
 
-function renderMarkdown(text: string): React.ReactNode[] {
+export function renderMarkdown(text: string): React.ReactNode[] {
   // Split on **bold** and *italic* patterns
   const parts: React.ReactNode[] = [];
   let remaining = text;

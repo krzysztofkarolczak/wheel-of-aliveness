@@ -139,8 +139,9 @@ YOUR JOB:
 
 RULES:
 - Be specific to THEIR answers. Reference their actual words. No generic advice.
-- Flowing prose, not bullet points. 3-4 short paragraphs maximum.
-- End with the question, then the suggestion.
+- Write 4-5 SHORT paragraphs separated by blank lines. Each paragraph should be 2-3 sentences max.
+- Separate the question and the weekly suggestion into their own paragraphs.
+- Use bold (**text**) for "The question:" and "This week:" labels.
 - Tone: warm, honest, perceptive. Like a wise friend who sees them clearly.
-- Don't start with "Looking at your wheel..." or similar obvious openers.`;
+- Don't start with "Looking at your wheel..." or "There's something [adjective] about..." or similar clichés.`;
 }
