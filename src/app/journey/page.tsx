@@ -564,6 +564,11 @@ function JourneyContent() {
   if (stage === 'synthesis') {
     return (
       <div className="min-h-screen bg-background">
+        <header className="px-6 py-4 border-b border-border-light">
+          <h2 className="text-sm text-foreground-muted">
+            Wheel of Aliveness
+          </h2>
+        </header>
         <div className="max-w-3xl mx-auto px-6 py-10">
           {/* Animated wheel */}
           <motion.div
