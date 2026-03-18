@@ -102,6 +102,13 @@ Instead, respond directly to what THEY said. Use their words. Be specific, not f
   );
 }
 
+export function buildConversationSummaryPrompt(
+  dimensionIndex: number
+): string {
+  const dimension = DIMENSIONS[dimensionIndex];
+  return `Summarize this conversation about "${dimension.name}" in exactly ONE paragraph (3-4 sentences). Write it in second person ("you"), capturing the key insights and themes that emerged. Be specific — reference what the person actually said, not generic observations. No bullet points, no labels, just flowing prose.`;
+}
+
 export function buildSuggestionsPrompt(
   dimensionIndex: number
 ): string {

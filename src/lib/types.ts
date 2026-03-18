@@ -10,6 +10,7 @@ export interface DimensionResponse {
   rating: number;
   lettingGo: string;
   invitingIn: string;
+  conversationSummary?: string;
 }
 
 export interface Dimension {

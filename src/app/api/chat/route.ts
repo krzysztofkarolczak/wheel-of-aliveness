@@ -4,6 +4,7 @@ import {
   buildSystemPrompt,
   buildSynthesisPrompt,
   buildSuggestionsPrompt,
+  buildConversationSummaryPrompt,
 } from '@/lib/prompts';
 import { DimensionResponse } from '@/lib/types';
 
@@ -27,6 +28,22 @@ export async function POST(req: Request) {
   }
 
   // Suggestions mode — generate personalized letting go / inviting in
+  // Conversation summary mode
+  if (body.summarize) {
+    const { messages, dimensionIndex } = body;
+    const result = await generateText({
+      model: anthropic('claude-sonnet-4-6'),
+      system: buildConversationSummaryPrompt(dimensionIndex),
+      messages: (messages || []).map(
+        (m: { role: string; content: string }) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        })
+      ),
+    });
+    return Response.json({ summary: result.text });
+  }
+
   if (body.suggestions) {
     const { messages, dimensionIndex } = body;
     const result = await generateText({

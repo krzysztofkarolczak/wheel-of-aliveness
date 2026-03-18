@@ -230,6 +230,10 @@ export default function JourneyPage() {
 
     setPhase('closing');
 
+    const apiMessages = messages
+      .filter((m) => !m.hidden)
+      .map((m) => ({ role: m.role, content: m.content }));
+
     // Save dimension response
     const response: DimensionResponse = {
       dimensionId: DIMENSIONS[currentDimIndex].id,
@@ -238,14 +242,31 @@ export default function JourneyPage() {
       invitingIn: invitingIn.trim(),
     };
 
+    // Fetch conversation summary in background
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summarize: true,
+        messages: apiMessages,
+        dimensionIndex: currentDimIndex,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        response.conversationSummary = data.summary;
+        setCompletedDimensions((prev) =>
+          prev.map((d) =>
+            d.dimensionId === response.dimensionId ? response : d
+          )
+        );
+      })
+      .catch(() => {});
+
     const newCompleted = [...completedDimensions, response];
     setCompletedDimensions(newCompleted);
 
     // Get Claude's closing reflection
-    const apiMessages = messages
-      .filter((m) => !m.hidden)
-      .map((m) => ({ role: m.role, content: m.content }));
-
     await streamFromAPI(apiMessages, {
       closingData: {
         rating: currentRating,
@@ -334,59 +355,69 @@ export default function JourneyPage() {
     if (wheelEl) {
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(wheelEl as HTMLElement, {
-        backgroundColor: '#FAFAF5',
-        scale: 2,
+        backgroundColor: '#FFFFFF',
+        scale: 3,
       });
       const imgData = canvas.toDataURL('image/png');
-      const imgWidth = contentWidth * 0.7;
+      const imgWidth = contentWidth;
       const imgHeight = (canvas.height / canvas.width) * imgWidth;
       pdf.addImage(
         imgData,
         'PNG',
-        (pageWidth - imgWidth) / 2,
+        margin,
         y,
         imgWidth,
         imgHeight
       );
-      y += imgHeight + 10;
+      y += imgHeight + 8;
     }
 
-    // Dimension ratings
+    // Dimension details
     pdf.setTextColor(45, 42, 38);
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Your Ratings', margin, y);
-    y += 7;
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(9);
     completedDimensions.forEach((d) => {
       const dim = DIMENSIONS.find((dd) => dd.id === d.dimensionId);
       if (!dim) return;
 
-      if (y > 270) {
+      if (y > 240) {
         pdf.addPage();
         y = 20;
       }
 
+      // Dimension header
       pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.setTextColor(45, 42, 38);
       pdf.text(`${dim.name} — ${d.rating}/10`, margin, y);
-      y += 5;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100, 100, 100);
+      y += 6;
+
+      // Conversation summary
+      if (d.conversationSummary) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(9);
+        pdf.setTextColor(80, 80, 80);
+        const summaryLines = pdf.splitTextToSize(
+          d.conversationSummary,
+          contentWidth
+        );
+        pdf.text(summaryLines, margin, y);
+        y += summaryLines.length * 4 + 2;
+      }
+
+      // Letting go + inviting in
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(120, 120, 120);
       const lgLines = pdf.splitTextToSize(
         `Letting go: ${d.lettingGo}`,
         contentWidth
       );
       pdf.text(lgLines, margin, y);
-      y += lgLines.length * 4 + 1;
+      y += lgLines.length * 3.5 + 1;
       const iiLines = pdf.splitTextToSize(
         `Inviting in: ${d.invitingIn}`,
         contentWidth
       );
       pdf.text(iiLines, margin, y);
-      y += iiLines.length * 4 + 5;
-      pdf.setTextColor(45, 42, 38);
+      y += iiLines.length * 3.5 + 7;
     });
 
     // Synthesis
