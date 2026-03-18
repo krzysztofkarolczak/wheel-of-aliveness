@@ -37,6 +37,12 @@ export default function JourneyPage() {
   const [lettingGo, setLettingGo] = useState('');
   const [invitingIn, setInvitingIn] = useState('');
 
+  // Suggestions state
+  const [suggestions, setSuggestions] = useState<{
+    lettingGo: string;
+    invitingIn: string;
+  }>({ lettingGo: '', invitingIn: '' });
+
   // Synthesis state
   const [synthesisText, setSynthesisText] = useState('');
 
@@ -118,6 +124,7 @@ export default function JourneyPage() {
             closingData: options.closingData,
             synthesis: options.synthesis,
             responses: options.responses,
+            exchangeCount: options.autoStart ? 0 : userExchanges + 1,
           }),
         });
 
@@ -191,9 +198,31 @@ export default function JourneyPage() {
     setPhase('rating');
   }
 
-  function handleRate(rating: number) {
+  async function handleRate(rating: number) {
     setCurrentRating(rating);
     setPhase('reflection');
+
+    // Fetch personalized suggestions based on conversation
+    try {
+      const apiMessages = messages
+        .filter((m) => !m.hidden)
+        .map((m) => ({ role: m.role, content: m.content }));
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          suggestions: true,
+          messages: apiMessages,
+          dimensionIndex: currentDimIndex,
+        }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setSuggestions(data);
+      }
+    } catch {
+      // Fail silently — generic placeholders still work
+    }
   }
 
   async function handleCompleteReflection() {
@@ -251,6 +280,7 @@ export default function JourneyPage() {
     setCurrentRating(0);
     setLettingGo('');
     setInvitingIn('');
+    setSuggestions({ lettingGo: '', invitingIn: '' });
     setMessages([]);
 
     // Trigger introduction for next dimension
@@ -384,6 +414,7 @@ export default function JourneyPage() {
                 onInvitingInChange={setInvitingIn}
                 onComplete={handleCompleteReflection}
                 dimensionColor={currentDimension.color}
+                suggestions={suggestions}
               />
             )}
 
@@ -549,6 +580,7 @@ function ReflectionPanel({
   onInvitingInChange,
   onComplete,
   dimensionColor,
+  suggestions,
 }: {
   lettingGo: string;
   invitingIn: string;
@@ -556,6 +588,7 @@ function ReflectionPanel({
   onInvitingInChange: (v: string) => void;
   onComplete: () => void;
   dimensionColor: string;
+  suggestions: { lettingGo: string; invitingIn: string };
 }) {
   return (
     <motion.div
@@ -568,14 +601,13 @@ function ReflectionPanel({
         <label className="block text-sm text-foreground mb-2">
           What are you ready to let go of?
         </label>
-        <p className="text-xs text-foreground-muted mb-2">
-          A mindset, habit, role, expectation, or belief that no longer serves
-          you.
-        </p>
         <textarea
           value={lettingGo}
           onChange={(e) => onLettingGoChange(e.target.value)}
-          placeholder="What am I carrying that's weighing me down?"
+          placeholder={
+            suggestions.lettingGo ||
+            'A mindset, habit, or belief that no longer serves you...'
+          }
           rows={2}
           className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
         />
@@ -585,13 +617,13 @@ function ReflectionPanel({
         <label className="block text-sm text-foreground mb-2">
           What do you want to invite in?
         </label>
-        <p className="text-xs text-foreground-muted mb-2">
-          A feeling, practice, boundary, dream, or fresh perspective.
-        </p>
         <textarea
           value={invitingIn}
           onChange={(e) => onInvitingInChange(e.target.value)}
-          placeholder="What's trying to emerge in this part of my life?"
+          placeholder={
+            suggestions.invitingIn ||
+            'A feeling, practice, or perspective you want more of...'
+          }
           rows={2}
           className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
         />

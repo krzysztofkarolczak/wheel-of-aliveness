@@ -5,7 +5,8 @@ export function buildSystemPrompt(
   dimensionIndex: number,
   previousResponses: DimensionResponse[],
   autoStart: boolean,
-  closingData?: { rating: number; lettingGo: string; invitingIn: string }
+  closingData?: { rating: number; lettingGo: string; invitingIn: string },
+  exchangeCount: number = 0
 ): string {
   const dimension = DIMENSIONS[dimensionIndex];
   const isFirst = dimensionIndex === 0;
@@ -78,10 +79,29 @@ Give a brief, warm closing for this dimension (2-3 sentences). Acknowledge what 
     );
   }
 
+  if (exchangeCount >= 5) {
+    return (
+      base +
+      `\n\nThis is exchange ${exchangeCount} about "${dimension.name}". It's time to start gently wrapping up this dimension. Acknowledge what they've shared, offer a brief reflection on what you've noticed in the conversation, and then invite them to rate this dimension by clicking the button below. Say something like "When you're ready, go ahead and rate how alive this area feels to you — there's a button just below." Keep it natural and warm, not mechanical.`
+    );
+  }
+
   return (
     base +
-    `\n\nContinue the conversation about "${dimension.name}". Follow the energy of what they just shared. Brief responses, one question at a time.`
+    `\n\nThis is exchange ${exchangeCount} of about 5 for "${dimension.name}". Continue going deeper. Follow the energy of what they just shared. Brief responses, one question at a time.`
   );
+}
+
+export function buildSuggestionsPrompt(
+  dimensionIndex: number
+): string {
+  const dimension = DIMENSIONS[dimensionIndex];
+  return `Based on the conversation about "${dimension.name}", suggest what this person might want to let go of and what they might want to invite in.
+
+Respond in EXACTLY this JSON format, nothing else:
+{"lettingGo":"a specific suggestion based on what they shared","invitingIn":"a specific suggestion based on what they shared"}
+
+Keep each suggestion to one short sentence. Use their own words and themes where possible. Be specific, not generic.`;
 }
 
 export function buildSynthesisPrompt(

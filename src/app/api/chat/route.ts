@@ -1,6 +1,10 @@
 import { anthropic } from '@ai-sdk/anthropic';
-import { streamText } from 'ai';
-import { buildSystemPrompt, buildSynthesisPrompt } from '@/lib/prompts';
+import { streamText, generateText } from 'ai';
+import {
+  buildSystemPrompt,
+  buildSynthesisPrompt,
+  buildSuggestionsPrompt,
+} from '@/lib/prompts';
 import { DimensionResponse } from '@/lib/types';
 
 export async function POST(req: Request) {
@@ -22,6 +26,22 @@ export async function POST(req: Request) {
     return result.toTextStreamResponse();
   }
 
+  // Suggestions mode — generate personalized letting go / inviting in
+  if (body.suggestions) {
+    const { messages, dimensionIndex } = body;
+    const result = await generateText({
+      model: anthropic('claude-sonnet-4-6'),
+      system: buildSuggestionsPrompt(dimensionIndex),
+      messages: (messages || []).map(
+        (m: { role: string; content: string }) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        })
+      ),
+    });
+    return Response.json(JSON.parse(result.text));
+  }
+
   // Regular dimension conversation
   const {
     messages,
@@ -29,17 +49,17 @@ export async function POST(req: Request) {
     previousResponses,
     autoStart,
     closingData,
+    exchangeCount,
   } = body;
 
   const systemPrompt = buildSystemPrompt(
     dimensionIndex,
     previousResponses || [],
     autoStart || false,
-    closingData
+    closingData,
+    exchangeCount || 0
   );
 
-  // For autoStart (dimension introduction), provide a trigger message
-  // For closing, provide the reflection data
   const apiMessages =
     autoStart || closingData
       ? [
