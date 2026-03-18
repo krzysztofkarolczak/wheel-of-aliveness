@@ -276,12 +276,25 @@ export default function JourneyPage() {
       previousResponses: newCompleted,
     });
 
+    // If last dimension, go straight to synthesis after closing
+    if (currentDimIndex >= 7) {
+      setStage('synthesis');
+      setMessages([]);
+      setSynthesisText('');
+      const text = await streamFromAPI([], {
+        synthesis: true,
+        responses: newCompleted,
+      });
+      setSynthesisText(text);
+      return;
+    }
+
     setPhase('dimension-complete');
   }
 
   async function handleNextDimension() {
     if (currentDimIndex >= 7) {
-      // All dimensions complete → synthesis
+      // All dimensions complete → synthesis (shouldn't reach here anymore)
       setStage('synthesis');
       setMessages([]);
       setSynthesisText('');
