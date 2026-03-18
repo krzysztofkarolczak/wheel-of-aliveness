@@ -295,62 +295,50 @@ export default function JourneyPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border-light">
-        <h2 className="text-sm text-foreground-muted">
-          Wheel of Aliveness
-        </h2>
-        {!isSynthesis && (
-          <DimensionProgress
-            currentIndex={currentDimIndex}
-            completedCount={completedDimensions.length}
-          />
-        )}
-      </header>
+      {/* Header with wheel */}
+      <header className="border-b border-border-light">
+        <div className="flex items-center justify-between px-6 py-3">
+          <h2 className="text-sm text-foreground-muted">
+            Wheel of Aliveness
+          </h2>
+          {!isSynthesis && (
+            <DimensionProgress
+              currentIndex={currentDimIndex}
+              completedCount={completedDimensions.length}
+            />
+          )}
+        </div>
 
-      {/* Main content */}
-      <main className="flex-1 flex overflow-hidden">
-        {/* Wheel panel (desktop) */}
-        <aside className="hidden lg:flex w-[420px] flex-col items-center justify-center p-8 border-r border-border-light">
+        {/* Wheel — always visible at top */}
+        <div className="flex flex-col items-center pb-4">
           <WheelVisualization
             ratings={ratings}
             currentDimension={currentDimIndex}
-            size={320}
+            size={240}
           />
           {!isSynthesis && (
             <motion.p
               key={currentDimension.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-6 text-base text-center"
+              className="mt-2 text-sm font-medium text-center"
               style={{ color: currentDimension.color }}
             >
-              {currentDimension.name}
+              {currentDimIndex + 1}/8 &middot; {currentDimension.name}
             </motion.p>
           )}
           {isSynthesis && (
-            <p className="mt-6 text-base text-foreground-muted">
+            <p className="mt-2 text-sm text-foreground-muted">
               Your Wheel
             </p>
           )}
-        </aside>
+        </div>
+      </header>
 
-        {/* Conversation panel */}
-        <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full">
-          {/* Dimension title (mobile) */}
-          {!isSynthesis && (
-            <div className="lg:hidden px-6 pt-4 pb-2">
-              <p
-                className="text-sm font-medium"
-                style={{ color: currentDimension.color }}
-              >
-                {currentDimIndex + 1}/8 &middot; {currentDimension.name}
-              </p>
-            </div>
-          )}
-
-          {/* Messages area */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+      {/* Conversation panel */}
+      <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full overflow-hidden">
+        {/* Messages area */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
             <AnimatePresence mode="wait">
               {messages
                 .filter((m) => !m.hidden)
@@ -450,7 +438,7 @@ export default function JourneyPage() {
 
           {/* Input area */}
           {phase === 'conversation' && (
-            <div className="px-6 pb-6 pt-2 space-y-2">
+            <div className="px-6 pb-6 pt-3 space-y-2 border-t border-border-light">
               {showRatingPrompt && !isStreaming && (
                 <motion.div
                   initial={{ opacity: 0, y: 4 }}
@@ -481,7 +469,8 @@ export default function JourneyPage() {
                     placeholder="Continue sharing..."
                     disabled={isStreaming}
                     rows={1}
-                    className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 pr-10 text-sm text-foreground placeholder:text-foreground-muted/60 focus:outline-none focus:border-primary/40 transition-colors disabled:opacity-50 min-h-[44px] max-h-[120px]"
+                    autoFocus
+                    className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3.5 pr-10 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 focus:shadow-sm transition-all disabled:opacity-50 min-h-[48px] max-h-[120px]"
                   />
                   {input.trim() && !isStreaming && (
                     <button
@@ -505,7 +494,6 @@ export default function JourneyPage() {
               </form>
             </div>
           )}
-        </div>
       </main>
     </div>
   );

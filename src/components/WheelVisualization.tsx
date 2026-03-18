@@ -108,10 +108,10 @@ export default function WheelVisualization({
             <path
               d={createWedgePath(startDeg, endDeg, maxRadius)}
               fill={dim.color}
-              fillOpacity={isCurrent ? 0.1 : 0.03}
+              fillOpacity={isCurrent ? 0.15 : 0.05}
               stroke={dim.color}
-              strokeWidth={isCurrent ? 1 : 0.5}
-              strokeOpacity={isCurrent ? 0.3 : 0.1}
+              strokeWidth={isCurrent ? 1.5 : 0.5}
+              strokeOpacity={isCurrent ? 0.4 : 0.15}
             />
 
             {/* Rated wedge — filled proportionally */}
@@ -123,7 +123,7 @@ export default function WheelVisualization({
                   (rating / 10) * maxRadius
                 )}
                 fill={dim.color}
-                fillOpacity={0.35}
+                fillOpacity={0.45}
                 stroke={dim.color}
                 strokeWidth={1}
                 strokeOpacity={0.5}
