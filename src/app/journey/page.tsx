@@ -376,21 +376,7 @@ export default function JourneyPage() {
                 </div>
               )}
 
-            {/* Rating prompt */}
-            {showRatingPrompt && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="pt-2"
-              >
-                <button
-                  onClick={handleReadyToRate}
-                  className="text-sm font-sans px-4 py-2 rounded-full border border-border hover:border-foreground-muted transition-colors cursor-pointer text-foreground-muted hover:text-foreground"
-                >
-                  I&apos;m ready to rate this dimension
-                </button>
-              </motion.div>
-            )}
+            {/* Rating prompt — now shown inline below, not here */}
 
             {/* Rating input */}
             {phase === 'rating' && (
@@ -463,7 +449,7 @@ export default function JourneyPage() {
           </div>
 
           {/* Input area */}
-          {phase === 'conversation' && !showRatingPrompt && (
+          {phase === 'conversation' && (
             <form
               onSubmit={handleSendMessage}
               className="px-6 pb-6 pt-2"
@@ -507,6 +493,22 @@ export default function JourneyPage() {
                   </button>
                 )}
               </div>
+              {showRatingPrompt && !isStreaming && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                  className="mt-2 flex justify-end"
+                >
+                  <button
+                    type="button"
+                    onClick={handleReadyToRate}
+                    className="text-xs font-sans px-3 py-1.5 rounded-full border border-border hover:border-foreground-muted transition-colors cursor-pointer text-foreground-muted hover:text-foreground"
+                  >
+                    I&apos;m ready to rate this dimension
+                  </button>
+                </motion.div>
+              )}
             </form>
           )}
         </div>
