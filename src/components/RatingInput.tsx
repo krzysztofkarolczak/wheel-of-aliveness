@@ -24,11 +24,11 @@ export default function RatingInput({ onRate, dimensionColor }: RatingInputProps
       transition={{ duration: 0.4 }}
       className="py-6"
     >
-      <p className="text-sm text-foreground-muted mb-5">
+      <p className="text-sm text-foreground-muted mb-5 text-center">
         How alive does this area feel to you right now?
       </p>
 
-      <div className="flex items-center justify-between max-w-md">
+      <div className="flex items-center justify-between max-w-md mx-auto">
         {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => {
           const isHovered = hoveredValue >= value;
           const isSelected = selectedValue >= value;
@@ -63,7 +63,7 @@ export default function RatingInput({ onRate, dimensionColor }: RatingInputProps
         })}
       </div>
 
-      <div className="flex justify-between max-w-md mt-1.5">
+      <div className="flex justify-between max-w-md mx-auto mt-1.5">
         <span className="text-[11px] text-foreground-muted">feels heavy</span>
         <span className="text-[11px] text-foreground-muted">fully alive</span>
       </div>
