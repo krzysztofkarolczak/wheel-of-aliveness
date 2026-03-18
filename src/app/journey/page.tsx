@@ -340,7 +340,7 @@ export default function JourneyPage() {
         </div>
 
         {/* Wheel — always visible at top */}
-        <div className="flex flex-col items-center pb-0 -mt-4 -mb-2">
+        <div className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[280px]">
           <WheelVisualization
             ratings={ratings}
             currentDimension={currentDimIndex}
