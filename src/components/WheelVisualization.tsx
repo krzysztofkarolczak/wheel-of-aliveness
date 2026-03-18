@@ -11,8 +11,8 @@ interface WheelVisualizationProps {
 }
 
 const TOTAL = 8;
-const GAP_DEG = 2; // gap between wedges in degrees
-const SECTOR_DEG = 360 / TOTAL - GAP_DEG;
+const GAP_DEG = 0;
+const SECTOR_DEG = 360 / TOTAL;
 
 function degToRad(deg: number): number {
   return (deg * Math.PI) / 180;
