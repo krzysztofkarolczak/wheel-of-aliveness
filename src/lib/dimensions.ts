@@ -9,6 +9,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'What was the last decision where you felt fully aligned — not just confident, but aligned?',
       'Where in your life right now do you sense you might be following a script that isn\'t yours?',
+      'If you stripped away what others expect of you, what would you actually choose?',
+      'What does your body tell you when you\'re about to make a decision that isn\'t really yours?',
     ],
     color: '#7B9EBF',
   },
@@ -20,6 +22,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'When was the last time you let yourself actually feel something difficult — without trying to fix it or move past it?',
       'What\'s the emotion you\'re most likely to override or minimize?',
+      'What happens in your body when an uncomfortable emotion shows up — what\'s your escape pattern?',
+      'Who taught you that certain feelings weren\'t safe to have?',
     ],
     color: '#C4956A',
   },
@@ -31,6 +35,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'If your body could speak right now, what would it ask you for?',
       'Where do you feel the tension between how you live and how your body wants to live?',
+      'What signals from your body have you been ignoring lately?',
+      'When was the last time you felt genuinely rested — not just recovered enough to perform again?',
     ],
     color: '#8B9E7E',
   },
@@ -42,6 +48,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'Who in your life sees the real you — not the composed version?',
       'What would change in your closest relationships if you dropped the performance?',
+      'What are you afraid people would think if they saw the unfiltered version of you?',
+      'When was the last time you said something truly honest that felt risky?',
     ],
     color: '#D4A853',
   },
@@ -53,6 +61,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'When did your work last make you feel genuinely alive — not just productive?',
       'If you stripped away the metrics and titles, what about your work would still matter to you?',
+      'What would you build if impact mattered more than income?',
+      'Is there something you keep putting off because it doesn\'t fit the plan — but it won\'t stop calling you?',
     ],
     color: '#A67B8A',
   },
@@ -64,6 +74,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'Where is the gap between what you say matters and how you actually spend your time and energy?',
       'What decision are you avoiding right now because the honest choice feels risky?',
+      'Where do you say yes when you mean no — and what are you protecting by doing that?',
+      'If your team or family could see your inner monologue, what would surprise them most?',
     ],
     color: '#6B8E8E',
   },
@@ -75,6 +87,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'What\'s something you used to be curious about that you\'ve stopped exploring?',
       'When was the last time you did something purely for the joy of discovering — without a goal?',
+      'Where in your life have you traded wonder for efficiency?',
+      'What question are you sitting with right now that you don\'t have an answer to — and can you be okay with that?',
     ],
     color: '#C9A86C',
   },
@@ -86,6 +100,8 @@ export const DIMENSIONS: Dimension[] = [
     deepeningPrompts: [
       'What would your days look like if you honored rest as much as you honor productivity?',
       'Where in your life have you confused recovery with true rest?',
+      'What are you afraid would happen if you actually stopped — fully stopped — for a week?',
+      'What does your relationship with stillness reveal about your relationship with yourself?',
     ],
     color: '#9B8EC4',
   },

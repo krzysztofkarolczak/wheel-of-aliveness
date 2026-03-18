@@ -67,7 +67,7 @@ export default function JourneyPage() {
     (m) => m.role === 'user' && !m.hidden
   ).length;
   const showRatingPrompt =
-    phase === 'conversation' && userExchanges >= 2 && !isStreaming;
+    phase === 'conversation' && userExchanges >= 4 && !isStreaming;
 
   // Ratings array for the wheel
   const ratings = DIMENSIONS.map((dim, i) => {
