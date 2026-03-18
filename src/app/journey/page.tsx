@@ -455,43 +455,44 @@ export default function JourneyPage() {
                   </button>
                 </motion.div>
               )}
-              <form onSubmit={handleSendMessage}>
-                <div className="relative">
-                  <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="Continue sharing..."
-                    disabled={isStreaming}
-                    rows={1}
-                    autoFocus
-                    className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3.5 pr-10 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 focus:shadow-sm transition-all disabled:opacity-50 min-h-[48px] max-h-[120px]"
-                  />
-                  {input.trim() && !isStreaming && (
-                    <button
-                      type="submit"
-                      className="absolute right-3 bottom-3.5 text-primary hover:text-primary-hover transition-colors cursor-pointer"
+              <form
+                onSubmit={handleSendMessage}
+                className="flex items-end gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 focus-within:border-primary/50 focus-within:shadow-sm transition-all"
+              >
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Continue sharing..."
+                  disabled={isStreaming}
+                  rows={1}
+                  autoFocus
+                  className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none disabled:opacity-50 min-h-[28px] max-h-[120px] py-1"
+                />
+                {input.trim() && !isStreaming && (
+                  <button
+                    type="submit"
+                    className="shrink-0 text-primary hover:text-primary-hover transition-colors cursor-pointer pb-0.5"
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
                     >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      >
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
               </form>
             </div>
           )}
