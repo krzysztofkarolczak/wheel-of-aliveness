@@ -476,7 +476,7 @@ export default function JourneyPage() {
                   {input.trim() && !isStreaming && (
                     <button
                       type="submit"
-                      className="absolute right-3 top-3 text-primary hover:text-primary-hover transition-colors cursor-pointer"
+                      className="absolute right-3 bottom-3.5 text-primary hover:text-primary-hover transition-colors cursor-pointer"
                     >
                       <svg
                         width="18"
