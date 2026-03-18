@@ -294,9 +294,9 @@ export default function JourneyPage() {
   const isSynthesis = stage === 'synthesis';
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Header with wheel */}
-      <header className="border-b border-border-light">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* Header with wheel — sticky */}
+      <header className="shrink-0 border-b border-border-light bg-background z-10">
         <div className="flex items-center justify-between px-6 py-3">
           <h2 className="text-sm text-foreground-muted">
             Wheel of Aliveness
@@ -319,8 +319,8 @@ export default function JourneyPage() {
         </div>
       </header>
 
-      {/* Conversation panel */}
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full overflow-hidden">
+      {/* Conversation panel — scrollable */}
+      <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full min-h-0">
         {/* Dimension header */}
         {!isSynthesis && (
           <motion.div
