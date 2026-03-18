@@ -30,18 +30,26 @@ export async function POST(req: Request) {
   // Suggestions mode — generate personalized letting go / inviting in
   // Conversation summary mode
   if (body.summarize) {
-    const { messages, dimensionIndex } = body;
-    const result = await generateText({
-      model: anthropic('claude-sonnet-4-6'),
-      system: buildConversationSummaryPrompt(dimensionIndex),
-      messages: (messages || []).map(
-        (m: { role: string; content: string }) => ({
+    try {
+      const { messages, dimensionIndex } = body;
+      const filtered = (messages || [])
+        .filter((m: { content: string }) => m.content && m.content.trim())
+        .map((m: { role: string; content: string }) => ({
           role: m.role as 'user' | 'assistant',
           content: m.content,
-        })
-      ),
-    });
-    return Response.json({ summary: result.text });
+        }));
+      if (filtered.length > 0 && filtered[filtered.length - 1].role === 'assistant') {
+        filtered.push({ role: 'user' as const, content: 'Please summarize our conversation.' });
+      }
+      const result = await generateText({
+        model: anthropic('claude-sonnet-4-6'),
+        system: buildConversationSummaryPrompt(dimensionIndex),
+        messages: filtered,
+      });
+      return Response.json({ summary: result.text });
+    } catch {
+      return Response.json({ summary: '' });
+    }
   }
 
   if (body.suggestions) {
@@ -56,6 +64,14 @@ export async function POST(req: Request) {
 
       if (filteredMessages.length === 0) {
         return Response.json({ lettingGo: '', invitingIn: '' });
+      }
+
+      // Ensure conversation ends with a user message (API requirement)
+      if (filteredMessages[filteredMessages.length - 1].role === 'assistant') {
+        filteredMessages.push({
+          role: 'user' as const,
+          content: 'Based on our conversation, what do you suggest?',
+        });
       }
 
       const result = await generateText({
