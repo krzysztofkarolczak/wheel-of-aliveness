@@ -45,25 +45,28 @@ export async function POST(req: Request) {
   }
 
   if (body.suggestions) {
-    const { messages, dimensionIndex } = body;
-    const result = await generateText({
-      model: anthropic('claude-sonnet-4-6'),
-      system: buildSuggestionsPrompt(dimensionIndex),
-      messages: (messages || []).map(
-        (m: { role: string; content: string }) => ({
+    try {
+      const { messages, dimensionIndex } = body;
+      const filteredMessages = (messages || [])
+        .filter((m: { content: string }) => m.content && m.content.trim())
+        .map((m: { role: string; content: string }) => ({
           role: m.role as 'user' | 'assistant',
           content: m.content,
-        })
-      ),
-    });
-    try {
-      return Response.json(JSON.parse(result.text));
-    } catch {
-      // If Claude didn't return valid JSON, extract what we can
-      return Response.json({
-        lettingGo: '',
-        invitingIn: '',
+        }));
+
+      if (filteredMessages.length === 0) {
+        return Response.json({ lettingGo: '', invitingIn: '' });
+      }
+
+      const result = await generateText({
+        model: anthropic('claude-sonnet-4-6'),
+        system: buildSuggestionsPrompt(dimensionIndex),
+        messages: filteredMessages,
       });
+      return Response.json(JSON.parse(result.text));
+    } catch (e) {
+      console.error('[suggestions] error:', e);
+      return Response.json({ lettingGo: '', invitingIn: '' });
     }
   }
 

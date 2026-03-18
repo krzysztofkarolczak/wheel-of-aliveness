@@ -280,9 +280,10 @@ function JourneyContent() {
     setPhase('rating');
 
     // Pre-fetch suggestions while user is picking a rating
-    const apiMessages = messages
-      .filter((m) => !m.hidden)
+    const apiMessages = messagesRef.current
+      .filter((m) => !m.hidden && m.content.trim())
       .map((m) => ({ role: m.role, content: m.content }));
+
     fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -292,8 +293,12 @@ function JourneyContent() {
         dimensionIndex: currentDimIndex,
       }),
     })
-      .then((r) => r.json())
-      .then((data) => setSuggestions(data))
+      .then(async (r) => {
+        const text = await r.text();
+        if (!text) return;
+        const data = JSON.parse(text);
+        setSuggestions(data);
+      })
       .catch(() => {});
   }
 
