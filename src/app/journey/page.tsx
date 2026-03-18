@@ -196,33 +196,28 @@ export default function JourneyPage() {
 
   function handleReadyToRate() {
     setPhase('rating');
+
+    // Pre-fetch suggestions while user is picking a rating
+    const apiMessages = messages
+      .filter((m) => !m.hidden)
+      .map((m) => ({ role: m.role, content: m.content }));
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        suggestions: true,
+        messages: apiMessages,
+        dimensionIndex: currentDimIndex,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => setSuggestions(data))
+      .catch(() => {});
   }
 
-  async function handleRate(rating: number) {
+  function handleRate(rating: number) {
     setCurrentRating(rating);
     setPhase('reflection');
-
-    // Fetch personalized suggestions based on conversation
-    try {
-      const apiMessages = messages
-        .filter((m) => !m.hidden)
-        .map((m) => ({ role: m.role, content: m.content }));
-      const resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          suggestions: true,
-          messages: apiMessages,
-          dimensionIndex: currentDimIndex,
-        }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setSuggestions(data);
-      }
-    } catch {
-      // Fail silently — generic placeholders still work
-    }
   }
 
   async function handleCompleteReflection() {
