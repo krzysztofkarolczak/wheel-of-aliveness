@@ -310,7 +310,7 @@ export default function JourneyPage() {
         </div>
 
         {/* Wheel — always visible at top */}
-        <div className="flex flex-col items-center pb-1 -mt-2">
+        <div className="flex flex-col items-center pb-0 -mt-4 -mb-2">
           <WheelVisualization
             ratings={ratings}
             currentDimension={currentDimIndex}
@@ -321,7 +321,7 @@ export default function JourneyPage() {
               key={currentDimension.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-2 text-sm font-medium text-center"
+              className="-mt-1 text-sm font-medium text-center"
               style={{ color: currentDimension.color }}
             >
               {currentDimIndex + 1}/8 &middot; {currentDimension.name}
