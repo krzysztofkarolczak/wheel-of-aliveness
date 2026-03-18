@@ -75,15 +75,17 @@ export default function WheelVisualization({
   size = 360,
   showLabels = true,
 }: WheelVisualizationProps) {
-  const margin = showLabels ? 90 : 10;
-  const maxRadius = (size - margin * 2) / 2;
-  const viewBox = size / 2 + margin;
+  const marginX = showLabels ? 95 : 10;
+  const marginY = showLabels ? 50 : 10;
+  const maxRadius = (size - marginY * 2) / 2;
+  const viewBoxX = size / 2 + marginX;
+  const viewBoxY = size / 2 + marginY;
 
   return (
     <svg
-      viewBox={`${-viewBox} ${-viewBox} ${viewBox * 2} ${viewBox * 2}`}
-      className="w-full h-full"
-      style={{ maxWidth: size + margin * 2, maxHeight: size + margin * 2 }}
+      viewBox={`${-viewBoxX} ${-viewBoxY} ${viewBoxX * 2} ${viewBoxY * 2}`}
+      className="w-full"
+      preserveAspectRatio="xMidYMid meet"
     >
       {/* Outer ring / grid circle */}
       <circle
