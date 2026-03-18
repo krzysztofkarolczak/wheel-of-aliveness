@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DIMENSIONS } from '@/lib/dimensions';
 import { UIMessage, DimensionResponse } from '@/lib/types';
@@ -8,6 +9,41 @@ import WheelVisualization from '@/components/WheelVisualization';
 import RatingInput from '@/components/RatingInput';
 import ChatMessage, { renderMarkdown } from '@/components/ChatMessage';
 import DimensionProgress from '@/components/DimensionProgress';
+
+const DEBUG_RESPONSES: DimensionResponse[] = DIMENSIONS.map((dim, i) => ({
+  dimensionId: dim.id,
+  rating: [6, 5, 6, 7, 7, 7, 9, 4][i],
+  lettingGo: [
+    'The belief that playing it safe is the responsible thing to do',
+    'The habit of turning feelings into tasks to solve',
+    'The mindset that rest is earned, not essential',
+    'The need to always appear in control',
+    'The guilt of not being fully committed to the thing that pays',
+    'Prioritizing being liked over being honest',
+    'Letting admin tasks crowd out creative time',
+    'The belief that stopping means falling behind',
+  ][i],
+  invitingIn: [
+    'Trusting the chest feeling more — letting alignment lead',
+    'Permission to feel without needing to fix anything',
+    'A sustainable rhythm that includes running and real sleep',
+    'More conversations where I can show up without the armor',
+    'Integration — making meaningful work financially sustainable',
+    'The courage to have difficult conversations sooner',
+    'Protecting creative blocks as sacred time',
+    'Real stillness — genuine spaciousness without guilt',
+  ][i],
+  conversationSummary: [
+    'You notice most of your decisions lately feel strategic rather than aligned. The AI coaching program was the last thing that felt genuinely yours — a calm energy in your chest versus the tight, calculating feeling in your head. Fear of making a wrong move across three businesses and family keeps you defaulting to safe. Argonauts and the explorer work is where that chest feeling lives, but it doesn\'t pay the bills yet.',
+    'You push through emotions quickly, turning discomfort into action items rather than sitting with it. Frustration and sadness get analyzed away, and the laptop is your escape hatch — jaw tenses, shoulders tighten, screen opens. This pattern traces back to your father, where emotions were seen as inefficiency. The fear is that if you stop solving, you\'ll face the weight of things you haven\'t processed.',
+    'Your body is more vehicle than partner — sleep is the first sacrifice, and your back has been screaming from 10-hour sitting days. Running is the one time body and mind sync, but you\'ve been skipping it for weeks. You\'re running on fumes more than you\'d admit, functioning at a 6 or 7 but not truly vital.',
+    'You hold back the messy parts of yourself in conversations. Even with your wife, you perform "I\'ve got this" when you don\'t. Vulnerability feels like a liability — showing doubt might erode others\' confidence. A few close friends from explorer circles are the exception, where masks come off.',
+    'Inwedo pays the bills but Argonauts is where meaning lives — building the explorer program and watching people transform. If impact mattered more than income, you\'d go all-in on Argonauts tomorrow. AI Mastermind is your attempt to bridge meaning and commerce.',
+    'Values and actions are mostly aligned, but you avoid hard conversations — softening feedback too much. Approval-seeking compromises honesty. There\'s a restructuring conversation you\'ve been postponing for weeks, knowing exactly what needs to happen.',
+    'Creativity and curiosity are genuinely alive right now — AI pulls you in constantly, and the pure joy of creation is the drug. You\'ve brought it to the center of your work with Argonauts and AI Mastermind. Admin and operations are what kill the creative energy.',
+    'Your days are packed 7am to 11pm with barely any silence. Weekends are recovery, not rest. The fear is that stopping means everything falls apart. Your son is the exception — when you\'re with him, time actually slows down, the closest thing to real spaciousness you have.',
+  ][i],
+}));
 
 type Phase =
   | 'conversation'
@@ -19,6 +55,17 @@ type Phase =
 type JourneyStage = 'welcome' | 'active' | 'synthesis' | 'complete';
 
 export default function JourneyPage() {
+  return (
+    <Suspense>
+      <JourneyContent />
+    </Suspense>
+  );
+}
+
+function JourneyContent() {
+  const searchParams = useSearchParams();
+  const isDebug = searchParams.get('debug') === 'true';
+
   // Journey-level state
   const [stage, setStage] = useState<JourneyStage>('welcome');
   const [completedDimensions, setCompletedDimensions] = useState<
@@ -45,6 +92,41 @@ export default function JourneyPage() {
 
   // Synthesis state
   const [synthesisText, setSynthesisText] = useState('');
+
+  // Debug mode: skip to synthesis with pre-filled data
+  useEffect(() => {
+    if (isDebug && stage === 'welcome') {
+      setCompletedDimensions(DEBUG_RESPONSES);
+      setCurrentDimIndex(7);
+      setStage('synthesis');
+      setMessages([]);
+
+      // Trigger synthesis
+      (async () => {
+        const resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            synthesis: true,
+            responses: DEBUG_RESPONSES,
+          }),
+        });
+        if (!resp.body) return;
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let full = '';
+        const msgId = crypto.randomUUID();
+        setMessages([{ id: msgId, role: 'assistant', content: '' }]);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          full += decoder.decode(value, { stream: true });
+          setMessages([{ id: msgId, role: 'assistant', content: full }]);
+        }
+        setSynthesisText(full);
+      })();
+    }
+  }, [isDebug, stage]);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
