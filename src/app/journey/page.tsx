@@ -660,8 +660,8 @@ function JourneyContent() {
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header with wheel — sticky */}
       <header className="shrink-0 border-b border-border-light bg-background z-10">
-        <div className="flex items-center justify-between px-6 py-3">
-          <h2 className="text-sm text-foreground-muted">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 gap-4">
+          <h2 className="text-sm text-foreground-muted shrink-0">
             Wheel of Aliveness
           </h2>
           <DimensionProgress
@@ -670,8 +670,8 @@ function JourneyContent() {
           />
         </div>
 
-        {/* Wheel — always visible at top */}
-        <div data-wheel-pdf className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[420px]">
+        {/* Wheel — responsive size */}
+        <div data-wheel-pdf className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[220px] sm:max-h-[420px] w-full max-w-[300px] sm:max-w-none mx-auto">
           <WheelVisualization
             ratings={ratings}
             currentDimension={currentDimIndex}
