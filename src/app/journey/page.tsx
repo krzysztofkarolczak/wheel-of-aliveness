@@ -314,7 +314,7 @@ export default function JourneyPage() {
           <WheelVisualization
             ratings={ratings}
             currentDimension={currentDimIndex}
-            size={240}
+            size={340}
           />
           {!isSynthesis && (
             <motion.p
