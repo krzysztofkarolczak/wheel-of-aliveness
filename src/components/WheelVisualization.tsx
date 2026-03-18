@@ -10,56 +10,63 @@ interface WheelVisualizationProps {
   showLabels?: boolean;
 }
 
-function polarToCartesian(
+const TOTAL = 8;
+const GAP_DEG = 2; // gap between wedges in degrees
+const SECTOR_DEG = 360 / TOTAL - GAP_DEG;
+
+function degToRad(deg: number): number {
+  return (deg * Math.PI) / 180;
+}
+
+/** Start angle (in degrees, 0 = top/12 o'clock, clockwise) for sector i */
+function sectorStartDeg(i: number): number {
+  return i * (360 / TOTAL) + GAP_DEG / 2 - 90;
+}
+
+function sectorEndDeg(i: number): number {
+  return sectorStartDeg(i) + SECTOR_DEG;
+}
+
+/** Create an SVG arc path for a wedge from center, spanning startDeg→endDeg at given radius */
+function createWedgePath(
+  startDeg: number,
+  endDeg: number,
+  radius: number
+): string {
+  const startRad = degToRad(startDeg);
+  const endRad = degToRad(endDeg);
+
+  const x1 = radius * Math.cos(startRad);
+  const y1 = radius * Math.sin(startRad);
+  const x2 = radius * Math.cos(endRad);
+  const y2 = radius * Math.sin(endRad);
+
+  const largeArc = endDeg - startDeg > 180 ? 1 : 0;
+
+  return `M 0 0 L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+}
+
+function getLabelPosition(
   index: number,
-  value: number,
-  maxRadius: number,
-  total: number = 8
-) {
-  const angle = (Math.PI * 2 * index) / total - Math.PI / 2;
+  maxRadius: number
+): { x: number; y: number } {
+  const midDeg = (sectorStartDeg(index) + sectorEndDeg(index)) / 2;
+  const midRad = degToRad(midDeg);
+  const labelRadius = maxRadius + 18;
   return {
-    x: (value / 10) * maxRadius * Math.cos(angle),
-    y: (value / 10) * maxRadius * Math.sin(angle),
+    x: labelRadius * Math.cos(midRad),
+    y: labelRadius * Math.sin(midRad),
   };
 }
 
-function createPolygonPath(values: number[], maxRadius: number): string {
-  if (values.every((v) => v === 0)) return '';
-  const points = values.map((v, i) => polarToCartesian(i, v, maxRadius));
-  return (
-    points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') +
-    ' Z'
-  );
-}
-
-function getLabelAnchor(index: number, total: number = 8): 'start' | 'middle' | 'end' {
-  const angle = (360 * index) / total;
-  if (angle === 0 || angle === 180) return 'middle';
-  if (angle > 0 && angle < 180) return 'start';
+function getLabelAnchor(index: number): 'start' | 'middle' | 'end' {
+  const midDeg = ((sectorStartDeg(index) + sectorEndDeg(index)) / 2 + 360) % 360;
+  // Normalize to 0-360 where 0 is right
+  const adjusted = (midDeg + 90) % 360; // back to standard 0=right
+  if (adjusted > 350 || adjusted < 10 || (adjusted > 170 && adjusted < 190))
+    return 'middle';
+  if (adjusted >= 10 && adjusted <= 170) return 'start';
   return 'end';
-}
-
-function getLabelOffset(
-  index: number,
-  maxRadius: number,
-  total: number = 8
-): { x: number; y: number } {
-  const pos = polarToCartesian(index, 10, maxRadius, total);
-  const angle = (360 * index) / total;
-  const padding = 16;
-
-  let dx = 0;
-  let dy = 0;
-
-  if (angle === 0) dy = -padding;
-  else if (angle === 180) dy = padding + 4;
-  else if (angle > 0 && angle < 180) dx = padding;
-  else dx = -padding;
-
-  if (angle === 90) dy = 4;
-  if (angle === 270) dy = 4;
-
-  return { x: pos.x + dx, y: pos.y + dy };
 }
 
 export default function WheelVisualization({
@@ -71,10 +78,6 @@ export default function WheelVisualization({
   const margin = showLabels ? 80 : 20;
   const maxRadius = (size - margin * 2) / 2;
   const viewBox = size / 2 + margin;
-  const gridLevels = [2, 4, 6, 8, 10];
-
-  const path = createPolygonPath(ratings, maxRadius);
-  const hasAnyRating = ratings.some((r) => r > 0);
 
   return (
     <svg
@@ -82,95 +85,68 @@ export default function WheelVisualization({
       className="w-full h-full"
       style={{ maxWidth: size + margin * 2, maxHeight: size + margin * 2 }}
     >
-      {/* Grid circles */}
-      {gridLevels.map((level) => (
-        <circle
-          key={level}
-          r={(level / 10) * maxRadius}
-          fill="none"
-          stroke="var(--border)"
-          strokeWidth={level === 10 ? 1 : 0.5}
-          opacity={level === 10 ? 0.6 : 0.3}
-        />
-      ))}
+      {/* Outer ring / grid circle */}
+      <circle
+        r={maxRadius}
+        fill="none"
+        stroke="var(--border)"
+        strokeWidth={0.5}
+        opacity={0.4}
+      />
 
-      {/* Spokes */}
+      {/* Wedge sectors */}
       {DIMENSIONS.map((dim, i) => {
-        const end = polarToCartesian(i, 10, maxRadius);
-        const isActive = i === currentDimension;
-        const isCompleted = ratings[i] > 0;
+        const isCurrent = i === currentDimension;
+        const rating = ratings[i];
+        const hasRating = rating > 0;
+        const startDeg = sectorStartDeg(i);
+        const endDeg = sectorEndDeg(i);
+
         return (
-          <line
-            key={dim.id}
-            x1={0}
-            y1={0}
-            x2={end.x}
-            y2={end.y}
-            stroke={isActive ? dim.color : 'var(--border)'}
-            strokeWidth={isActive ? 1.5 : 0.5}
-            opacity={isActive ? 0.8 : isCompleted ? 0.5 : 0.25}
-          />
+          <g key={dim.id}>
+            {/* Background wedge — light tint for current, very faint for others */}
+            <path
+              d={createWedgePath(startDeg, endDeg, maxRadius)}
+              fill={dim.color}
+              fillOpacity={isCurrent ? 0.1 : 0.03}
+              stroke={dim.color}
+              strokeWidth={isCurrent ? 1 : 0.5}
+              strokeOpacity={isCurrent ? 0.3 : 0.1}
+            />
+
+            {/* Rated wedge — filled proportionally */}
+            {hasRating && (
+              <motion.path
+                d={createWedgePath(
+                  startDeg,
+                  endDeg,
+                  (rating / 10) * maxRadius
+                )}
+                fill={dim.color}
+                fillOpacity={0.35}
+                stroke={dim.color}
+                strokeWidth={1}
+                strokeOpacity={0.5}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                style={{ transformOrigin: '0 0' }}
+              />
+            )}
+          </g>
         );
       })}
 
-      {/* Filled polygon */}
-      {hasAnyRating && (
-        <motion.path
-          d={path}
-          fill="var(--primary)"
-          fillOpacity={0.12}
-          stroke="var(--primary)"
-          strokeWidth={1.5}
-          strokeOpacity={0.4}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
-      )}
-
-      {/* Rating dots */}
-      {ratings.map((rating, i) => {
-        if (rating === 0) return null;
-        const pos = polarToCartesian(i, rating, maxRadius);
-        return (
-          <motion.circle
-            key={`dot-${i}`}
-            cx={pos.x}
-            cy={pos.y}
-            r={5}
-            fill={DIMENSIONS[i].color}
-            stroke="white"
-            strokeWidth={2}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.1, type: 'spring' }}
-          />
-        );
-      })}
-
-      {/* Current dimension highlight dot (pulsing) */}
-      {ratings[currentDimension] === 0 && (
-        <motion.circle
-          cx={0}
-          cy={0}
-          r={4}
-          fill={DIMENSIONS[currentDimension].color}
-          opacity={0.5}
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.5, 0.8, 0.5],
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      )}
+      {/* Center dot */}
+      <circle r={3} fill="var(--border)" opacity={0.5} />
 
       {/* Labels */}
       {showLabels &&
         DIMENSIONS.map((dim, i) => {
-          const labelPos = getLabelOffset(i, maxRadius);
+          const labelPos = getLabelPosition(i, maxRadius);
           const anchor = getLabelAnchor(i);
-          const isActive = i === currentDimension;
-          const isCompleted = ratings[i] > 0;
+          const isCurrent = i === currentDimension;
+          const hasRating = ratings[i] > 0;
 
           return (
             <text
@@ -181,17 +157,17 @@ export default function WheelVisualization({
               dominantBaseline="middle"
               fontSize={11}
               fill={
-                isActive
+                isCurrent
                   ? dim.color
-                  : isCompleted
+                  : hasRating
                   ? 'var(--foreground)'
                   : 'var(--foreground-muted)'
               }
-              fontWeight={isActive ? 600 : 400}
-              opacity={isActive ? 1 : isCompleted ? 0.8 : 0.5}
+              fontWeight={isCurrent ? 600 : 400}
+              opacity={isCurrent ? 1 : hasRating ? 0.8 : 0.5}
             >
               {dim.name}
-              {isCompleted && (
+              {hasRating && (
                 <tspan fontSize={10} opacity={0.6}>
                   {' '}
                   {ratings[i]}
