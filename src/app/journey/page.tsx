@@ -290,8 +290,143 @@ export default function JourneyPage() {
     });
   }
 
-  function handleComplete() {
-    setStage('complete');
+  function handleStartOver() {
+    setStage('welcome');
+    setCurrentDimIndex(0);
+    setCompletedDimensions([]);
+    setMessages([]);
+    setPhase('conversation');
+    setCurrentRating(0);
+    setLettingGo('');
+    setInvitingIn('');
+    setSuggestions({ lettingGo: '', invitingIn: '' });
+    setSynthesisText('');
+  }
+
+  async function handleDownloadPDF() {
+    const { default: jsPDF } = await import('jspdf');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 25;
+
+    // Title
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(22);
+    pdf.text('Wheel of Aliveness', pageWidth / 2, y, { align: 'center' });
+    y += 10;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(140, 140, 140);
+    pdf.text(
+      `Completed ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+      pageWidth / 2,
+      y,
+      { align: 'center' }
+    );
+    y += 15;
+
+    // Capture wheel as image
+    const wheelEl = document.querySelector('[data-wheel-pdf]');
+    if (wheelEl) {
+      const { default: html2canvas } = await import('html2canvas');
+      const canvas = await html2canvas(wheelEl as HTMLElement, {
+        backgroundColor: '#FAFAF5',
+        scale: 2,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = contentWidth * 0.7;
+      const imgHeight = (canvas.height / canvas.width) * imgWidth;
+      pdf.addImage(
+        imgData,
+        'PNG',
+        (pageWidth - imgWidth) / 2,
+        y,
+        imgWidth,
+        imgHeight
+      );
+      y += imgHeight + 10;
+    }
+
+    // Dimension ratings
+    pdf.setTextColor(45, 42, 38);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Your Ratings', margin, y);
+    y += 7;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    completedDimensions.forEach((d) => {
+      const dim = DIMENSIONS.find((dd) => dd.id === d.dimensionId);
+      if (!dim) return;
+
+      if (y > 270) {
+        pdf.addPage();
+        y = 20;
+      }
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${dim.name} — ${d.rating}/10`, margin, y);
+      y += 5;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 100, 100);
+      const lgLines = pdf.splitTextToSize(
+        `Letting go: ${d.lettingGo}`,
+        contentWidth
+      );
+      pdf.text(lgLines, margin, y);
+      y += lgLines.length * 4 + 1;
+      const iiLines = pdf.splitTextToSize(
+        `Inviting in: ${d.invitingIn}`,
+        contentWidth
+      );
+      pdf.text(iiLines, margin, y);
+      y += iiLines.length * 4 + 5;
+      pdf.setTextColor(45, 42, 38);
+    });
+
+    // Synthesis
+    if (synthesisText) {
+      if (y > 200) {
+        pdf.addPage();
+        y = 20;
+      }
+
+      y += 5;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.text('Reflection', margin, y);
+      y += 7;
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9);
+      const cleanSynthesis = synthesisText.replace(/\*\*/g, '');
+      const synthLines = pdf.splitTextToSize(cleanSynthesis, contentWidth);
+      synthLines.forEach((line: string) => {
+        if (y > 280) {
+          pdf.addPage();
+          y = 20;
+        }
+        pdf.text(line, margin, y);
+        y += 4.5;
+      });
+    }
+
+    // Footer
+    pdf.setFontSize(8);
+    pdf.setTextColor(180, 180, 180);
+    pdf.text(
+      'The Argonauts · Explorer Membership · Wheel of Aliveness',
+      pageWidth / 2,
+      290,
+      { align: 'center' }
+    );
+
+    pdf.save('wheel-of-aliveness.pdf');
   }
 
   // ─── Render ──────────────────────────────────────────────────
@@ -300,25 +435,6 @@ export default function JourneyPage() {
     return <WelcomeScreen onBegin={handleBegin} />;
   }
 
-  if (stage === 'complete') {
-    return (
-      <CompleteScreen
-        ratings={ratings}
-        synthesis={synthesisText}
-        onStartOver={() => {
-          setStage('welcome');
-          setCurrentDimIndex(0);
-          setCompletedDimensions([]);
-          setMessages([]);
-          setPhase('conversation');
-          setCurrentRating(0);
-          setLettingGo('');
-          setInvitingIn('');
-          setSynthesisText('');
-        }}
-      />
-    );
-  }
 
   const currentDimension = DIMENSIONS[currentDimIndex];
   const isSynthesis = stage === 'synthesis';
@@ -340,7 +456,7 @@ export default function JourneyPage() {
         </div>
 
         {/* Wheel — always visible at top */}
-        <div className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[420px]">
+        <div data-wheel-pdf className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[420px]">
           <WheelVisualization
             ratings={ratings}
             currentDimension={currentDimIndex}
@@ -448,20 +564,34 @@ export default function JourneyPage() {
               </motion.div>
             )}
 
-            {/* Synthesis complete */}
+            {/* Synthesis complete — download + start over */}
             {isSynthesis && !isStreaming && synthesisText && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="pt-6 flex justify-center"
+                className="pt-6 space-y-3 text-center"
               >
+                <p className="text-xs text-foreground-muted">
+                  Keep this. Come back to it. The shift might surprise you.
+                </p>
                 <button
-                  onClick={handleComplete}
+                  onClick={handleDownloadPDF}
                   className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Complete Your Journey
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                  </svg>
+                  Download PDF
                 </button>
+                <div>
+                  <button
+                    onClick={handleStartOver}
+                    className="text-xs text-foreground-muted hover:text-foreground transition-colors underline underline-offset-4 cursor-pointer"
+                  >
+                    Start a new wheel
+                  </button>
+                </div>
               </motion.div>
             )}
 
