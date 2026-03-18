@@ -39,7 +39,15 @@ export async function POST(req: Request) {
         })
       ),
     });
-    return Response.json(JSON.parse(result.text));
+    try {
+      return Response.json(JSON.parse(result.text));
+    } catch {
+      // If Claude didn't return valid JSON, extract what we can
+      return Response.json({
+        lettingGo: '',
+        invitingIn: '',
+      });
+    }
   }
 
   // Regular dimension conversation

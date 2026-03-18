@@ -598,32 +598,36 @@ function ReflectionPanel({
       className="space-y-5 py-4"
     >
       <div>
-        <label className="block text-sm text-foreground mb-2">
+        <label className="block text-sm text-foreground mb-1">
           What are you ready to let go of?
         </label>
+        {suggestions.lettingGo && (
+          <p className="text-xs text-foreground-muted italic mb-2">
+            Maybe something like: {suggestions.lettingGo}
+          </p>
+        )}
         <textarea
           value={lettingGo}
           onChange={(e) => onLettingGoChange(e.target.value)}
-          placeholder={
-            suggestions.lettingGo ||
-            'A mindset, habit, or belief that no longer serves you...'
-          }
+          placeholder="A mindset, habit, or belief that no longer serves you..."
           rows={2}
           className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
         />
       </div>
 
       <div>
-        <label className="block text-sm text-foreground mb-2">
+        <label className="block text-sm text-foreground mb-1">
           What do you want to invite in?
         </label>
+        {suggestions.invitingIn && (
+          <p className="text-xs text-foreground-muted italic mb-2">
+            Maybe something like: {suggestions.invitingIn}
+          </p>
+        )}
         <textarea
           value={invitingIn}
           onChange={(e) => onInvitingInChange(e.target.value)}
-          placeholder={
-            suggestions.invitingIn ||
-            'A feeling, practice, or perspective you want more of...'
-          }
+          placeholder="A feeling, practice, or perspective you want more of..."
           rows={2}
           className="w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/40 transition-colors"
         />
