@@ -8,6 +8,16 @@ import {
 } from '@/lib/prompts';
 import { DimensionResponse } from '@/lib/types';
 
+// Sonnet 5 (migracja z Sonnet 4.6, 25.09.2026). Sonnet 5 domyslnie mysli; wylaczamy to jawnie,
+// zeby zachowac dotychczasowe zachowanie (4.6 bez myslenia). @ai-sdk/anthropic 3.0.58 nie zna
+// jeszcze tego ID i bez maxOutputTokens przyjalby 4096 zamiast dawnego limitu modelu, stad jawny
+// limit. Nie dodawaj temperature/topP/topK ani budgetTokens — Sonnet 5 odpowiada na nie 400.
+const MODEL = anthropic('claude-sonnet-5');
+const MODEL_OPTIONS = {
+  maxOutputTokens: 16000,
+  providerOptions: { anthropic: { thinking: { type: 'disabled' as const } } },
+};
+
 export async function POST(req: Request) {
   const body = await req.json();
 
@@ -15,7 +25,8 @@ export async function POST(req: Request) {
   if (body.synthesis) {
     const responses: DimensionResponse[] = body.responses;
     const result = streamText({
-      model: anthropic('claude-sonnet-4-6'),
+      model: MODEL,
+      ...MODEL_OPTIONS,
       system: buildSynthesisPrompt(responses),
       messages: [
         {
@@ -42,7 +53,8 @@ export async function POST(req: Request) {
         filtered.push({ role: 'user' as const, content: 'Please summarize our conversation.' });
       }
       const result = await generateText({
-        model: anthropic('claude-sonnet-4-6'),
+        model: MODEL,
+        ...MODEL_OPTIONS,
         system: buildConversationSummaryPrompt(dimensionIndex),
         messages: filtered,
       });
@@ -75,7 +87,8 @@ export async function POST(req: Request) {
       }
 
       const result = await generateText({
-        model: anthropic('claude-sonnet-4-6'),
+        model: MODEL,
+        ...MODEL_OPTIONS,
         system: buildSuggestionsPrompt(dimensionIndex),
         messages: filteredMessages,
       });
@@ -123,7 +136,8 @@ export async function POST(req: Request) {
         );
 
   const result = streamText({
-    model: anthropic('claude-sonnet-4-6'),
+    model: MODEL,
+    ...MODEL_OPTIONS,
     system: systemPrompt,
     messages: apiMessages,
   });
