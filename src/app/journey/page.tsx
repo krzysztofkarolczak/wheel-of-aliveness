@@ -46,8 +46,8 @@ const DEBUG_RESPONSES: DimensionResponse[] = DIMENSIONS.map((dim, i) => ({
 }));
 
 type Phase =
-  | 'conversation'
   | 'rating'
+  | 'conversation'
   | 'reflection'
   | 'closing'
   | 'dimension-complete';
@@ -74,7 +74,7 @@ function JourneyContent() {
 
   // Current dimension state
   const [currentDimIndex, setCurrentDimIndex] = useState(0);
-  const [phase, setPhase] = useState<Phase>('conversation');
+  const [phase, setPhase] = useState<Phase>('rating');
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [input, setInput] = useState('');
@@ -150,12 +150,12 @@ function JourneyContent() {
     }
   }, [phase, isStreaming]);
 
-  // Count real user messages (for showing rating prompt)
+  // Count real user messages (for showing reflection prompt)
   const userExchanges = messages.filter(
     (m) => m.role === 'user' && !m.hidden
   ).length;
-  const showRatingPrompt =
-    phase === 'conversation' && userExchanges >= 4 && !isStreaming;
+  const showReflectionPrompt =
+    phase === 'conversation' && userExchanges >= 3 && !isStreaming;
 
   // Ratings array for the wheel
   const ratings = DIMENSIONS.map((dim, i) => {
@@ -170,7 +170,8 @@ function JourneyContent() {
     async (
       apiMessages: { role: string; content: string }[],
       options: {
-        autoStart?: boolean;
+        ratingStart?: boolean;
+        rating?: number;
         closingData?: {
           rating: number;
           lettingGo: string;
@@ -202,11 +203,14 @@ function JourneyContent() {
             dimensionIndex: options.dimensionIndex ?? currentDimIndex,
             previousResponses:
               options.previousResponses ?? completedDimensions,
-            autoStart: options.autoStart,
+            rating: options.rating,
+            ratingStart: options.ratingStart,
             closingData: options.closingData,
             synthesis: options.synthesis,
             responses: options.responses,
-            exchangeCount: options.autoStart ? 0 : userExchanges + 1,
+            exchangeCount: options.ratingStart
+              ? 0
+              : apiMessages.filter((m) => m.role === 'user').length,
           }),
         });
 
@@ -248,8 +252,14 @@ function JourneyContent() {
 
   function handleBegin() {
     setStage('active');
-    // Trigger Claude's introduction for the first dimension
-    streamFromAPI([], { autoStart: true });
+    // Phase is already 'rating' — user sees dimension intro + rating input
+  }
+
+  async function handleRate(rating: number) {
+    setCurrentRating(rating);
+    setPhase('conversation');
+    // Trigger AI's first curious question about the rating
+    await streamFromAPI([], { rating, ratingStart: true });
   }
 
   async function handleSendMessage(e?: React.FormEvent) {
@@ -273,13 +283,13 @@ function JourneyContent() {
       .filter((m) => !m.hidden)
       .map((m) => ({ role: m.role, content: m.content }));
 
-    await streamFromAPI(apiMessages);
+    await streamFromAPI(apiMessages, { rating: currentRating });
   }
 
-  function handleReadyToRate() {
-    setPhase('rating');
+  function handleReadyToReflect() {
+    setPhase('reflection');
 
-    // Pre-fetch suggestions while user is picking a rating
+    // Pre-fetch suggestions while user is writing reflections
     const apiMessages = messagesRef.current
       .filter((m) => !m.hidden && m.content.trim())
       .map((m) => ({ role: m.role, content: m.content }));
@@ -300,11 +310,6 @@ function JourneyContent() {
         setSuggestions(data);
       })
       .catch(() => {});
-  }
-
-  function handleRate(rating: number) {
-    setCurrentRating(rating);
-    setPhase('reflection');
   }
 
   async function handleCompleteReflection() {
@@ -358,6 +363,7 @@ function JourneyContent() {
         lettingGo: lettingGo.trim(),
         invitingIn: invitingIn.trim(),
       },
+      rating: currentRating,
       previousResponses: newCompleted,
     });
 
@@ -395,18 +401,12 @@ function JourneyContent() {
     // Reset for next dimension
     const nextIndex = currentDimIndex + 1;
     setCurrentDimIndex(nextIndex);
-    setPhase('conversation');
+    setPhase('rating');
     setCurrentRating(0);
     setLettingGo('');
     setInvitingIn('');
     setSuggestions({ lettingGo: '', invitingIn: '' });
     setMessages([]);
-
-    // Trigger introduction for next dimension
-    await streamFromAPI([], {
-      autoStart: true,
-      dimensionIndex: nextIndex,
-    });
   }
 
   function handleStartOver() {
@@ -414,7 +414,7 @@ function JourneyContent() {
     setCurrentDimIndex(0);
     setCompletedDimensions([]);
     setMessages([]);
-    setPhase('conversation');
+    setPhase('rating');
     setCurrentRating(0);
     setLettingGo('');
     setInvitingIn('');
@@ -564,7 +564,6 @@ function JourneyContent() {
     return <WelcomeScreen onBegin={handleBegin} />;
   }
 
-
   // ─── Synthesis page ─────────────────────────────────────────
   if (stage === 'synthesis') {
     return (
@@ -656,33 +655,73 @@ function JourneyContent() {
 
   const currentDimension = DIMENSIONS[currentDimIndex];
 
+  // Shared header for active stage
+  const activeHeader = (
+    <header className="shrink-0 border-b border-border-light bg-background z-10">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 gap-4">
+        <h2 className="text-sm text-foreground-muted shrink-0">
+          Wheel of Aliveness
+        </h2>
+        <DimensionProgress
+          currentIndex={currentDimIndex}
+          completedCount={completedDimensions.length}
+        />
+      </div>
+
+      {/* Wheel — responsive size */}
+      <div data-wheel-pdf className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[220px] sm:max-h-[420px] w-full max-w-[300px] sm:max-w-none mx-auto">
+        <WheelVisualization
+          ratings={ratings}
+          currentDimension={currentDimIndex}
+          size={340}
+        />
+      </div>
+    </header>
+  );
+
+  // ─── Rating phase — dimension intro + rating input ──────────
+  if (phase === 'rating') {
+    return (
+      <div className="h-screen flex flex-col bg-background overflow-hidden">
+        {activeHeader}
+
+        <main className="flex-1 flex flex-col items-center justify-center px-6 pb-10">
+          <motion.div
+            key={`rating-${currentDimension.id}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-md text-center"
+          >
+            <p
+              className="text-sm font-medium mb-6"
+              style={{ color: currentDimension.color }}
+            >
+              {currentDimIndex + 1}/8 &middot; {currentDimension.name}
+            </p>
+            <p className="font-serif text-lg leading-relaxed text-foreground">
+              {currentDimension.introQuestion}
+            </p>
+            <div className="mt-8">
+              <RatingInput
+                onRate={handleRate}
+                dimensionColor={currentDimension.color}
+              />
+            </div>
+          </motion.div>
+        </main>
+      </div>
+    );
+  }
+
+  // ─── Conversation / Reflection / Closing / Complete ─────────
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      {/* Header with wheel — sticky */}
-      <header className="shrink-0 border-b border-border-light bg-background z-10">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 gap-4">
-          <h2 className="text-sm text-foreground-muted shrink-0">
-            Wheel of Aliveness
-          </h2>
-          <DimensionProgress
-            currentIndex={currentDimIndex}
-            completedCount={completedDimensions.length}
-          />
-        </div>
-
-        {/* Wheel — responsive size */}
-        <div data-wheel-pdf className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[220px] sm:max-h-[420px] w-full max-w-[300px] sm:max-w-none mx-auto">
-          <WheelVisualization
-            ratings={ratings}
-            currentDimension={currentDimIndex}
-            size={340}
-          />
-        </div>
-      </header>
+      {activeHeader}
 
       {/* Conversation panel — scrollable */}
       <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full min-h-0">
-        {/* Dimension header */}
+        {/* Dimension header with rating */}
         <motion.div
           key={currentDimension.id}
           initial={{ opacity: 0 }}
@@ -694,6 +733,9 @@ function JourneyContent() {
             style={{ color: currentDimension.color }}
           >
             {currentDimIndex + 1}/8 &middot; {currentDimension.name}
+            {currentRating > 0 && (
+              <span className="opacity-60"> &middot; {currentRating}</span>
+            )}
           </p>
         </motion.div>
 
@@ -723,16 +765,6 @@ function JourneyContent() {
                   <span className="typing-dot w-2 h-2 rounded-full bg-foreground-muted" />
                 </div>
               )}
-
-            {/* Rating prompt — now shown inline below, not here */}
-
-            {/* Rating input */}
-            {phase === 'rating' && (
-              <RatingInput
-                onRate={handleRate}
-                dimensionColor={currentDimension.color}
-              />
-            )}
 
             {/* Reflection inputs */}
             {phase === 'reflection' && (
@@ -780,10 +812,10 @@ function JourneyContent() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input area */}
+          {/* Input area — only during conversation */}
           {phase === 'conversation' && (
             <div className="px-6 pb-6 pt-3 space-y-2 border-t border-border-light">
-              {showRatingPrompt && !isStreaming && (
+              {showReflectionPrompt && !isStreaming && (
                 <motion.div
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -791,10 +823,10 @@ function JourneyContent() {
                 >
                   <button
                     type="button"
-                    onClick={handleReadyToRate}
+                    onClick={handleReadyToReflect}
                     className="w-full py-2.5 rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary-hover transition-all duration-200 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                   >
-                    I&apos;m ready to rate this dimension
+                    Let&apos;s continue
                   </button>
                 </motion.div>
               )}
@@ -954,83 +986,5 @@ function ReflectionPanel({
         Complete this dimension
       </button>
     </motion.div>
-  );
-}
-
-function CompleteScreen({
-  ratings,
-  synthesis,
-  onStartOver,
-}: {
-  ratings: number[];
-  synthesis: string;
-  onStartOver: () => void;
-}) {
-  return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-6 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-3xl font-medium text-foreground mb-3">
-            Your Wheel of Aliveness
-          </h1>
-          <p className="text-sm text-foreground-muted">
-            This is your honest snapshot — where aliveness flows and where
-            it&apos;s stuck.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="flex justify-center mb-10"
-        >
-          <WheelVisualization
-            ratings={ratings}
-            currentDimension={-1}
-            size={400}
-            showLabels={true}
-          />
-        </motion.div>
-
-        {synthesis && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="max-w-xl mx-auto mb-10"
-          >
-            <div className="text-base leading-relaxed text-foreground space-y-4">
-              {synthesis.split('\n\n').map((paragraph, i) => (
-                <p key={i}>{renderMarkdown(paragraph.trim())}</p>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="text-center space-y-3"
-        >
-          <p className="text-xs text-foreground-muted">
-            Keep this. Come back to it. At the end of your Explorer journey,
-            complete it again. The shift might surprise you.
-          </p>
-          <button
-            onClick={onStartOver}
-            className="text-sm text-foreground-muted hover:text-foreground transition-colors underline underline-offset-4 cursor-pointer"
-          >
-            Start a new wheel
-          </button>
-        </motion.div>
-      </div>
-    </main>
   );
 }

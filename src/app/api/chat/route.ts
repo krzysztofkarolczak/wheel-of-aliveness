@@ -91,7 +91,8 @@ export async function POST(req: Request) {
     messages,
     dimensionIndex,
     previousResponses,
-    autoStart,
+    rating,
+    ratingStart,
     closingData,
     exchangeCount,
   } = body;
@@ -99,19 +100,19 @@ export async function POST(req: Request) {
   const systemPrompt = buildSystemPrompt(
     dimensionIndex,
     previousResponses || [],
-    autoStart || false,
+    rating || 5,
     closingData,
     exchangeCount || 0
   );
 
   const apiMessages =
-    autoStart || closingData
+    ratingStart || closingData
       ? [
           {
             role: 'user' as const,
             content: closingData
               ? `My rating: ${closingData.rating}/10. What I'm letting go of: "${closingData.lettingGo}". What I'm inviting in: "${closingData.invitingIn}".`
-              : 'Please begin.',
+              : `I rated this ${rating}/10.`,
           },
         ]
       : (messages || []).map(
