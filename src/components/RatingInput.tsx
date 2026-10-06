@@ -22,13 +22,13 @@ export default function RatingInput({ onRate, dimensionColor }: RatingInputProps
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="py-6"
+      className="py-6 [@media(max-height:700px)]:py-3"
     >
-      <p className="text-sm text-foreground-muted mb-5 text-center">
+      <p className="text-sm text-foreground-muted mb-5 text-center [@media(max-height:700px)]:mb-3">
         How alive does this area feel to you right now?
       </p>
 
-      <div className="flex items-center justify-between max-w-md mx-auto">
+      <div className="flex items-center justify-between gap-1 max-w-md mx-auto">
         {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => {
           const isHovered = hoveredValue >= value;
           const isSelected = selectedValue >= value;
@@ -41,7 +41,7 @@ export default function RatingInput({ onRate, dimensionColor }: RatingInputProps
               onClick={() => handleSelect(value)}
               onMouseEnter={() => setHoveredValue(value)}
               onMouseLeave={() => setHoveredValue(0)}
-              className="flex items-center justify-center w-9 h-9 rounded-full transition-colors duration-150 cursor-pointer focus:outline-none"
+              className="flex flex-1 items-center justify-center max-w-9 aspect-square rounded-full transition-colors duration-150 cursor-pointer focus:outline-none"
               style={{
                 backgroundColor: isActive ? dimensionColor : 'transparent',
                 opacity: isActive ? (isExact ? 1 : 0.6) : 1,

@@ -8,6 +8,7 @@ interface WheelVisualizationProps {
   currentDimension: number;
   size?: number;
   showLabels?: boolean;
+  className?: string;
 }
 
 const TOTAL = 8;
@@ -74,6 +75,7 @@ export default function WheelVisualization({
   currentDimension,
   size = 360,
   showLabels = true,
+  className = 'w-full',
 }: WheelVisualizationProps) {
   const marginX = showLabels ? 95 : 10;
   const marginY = showLabels ? 50 : 10;
@@ -84,7 +86,7 @@ export default function WheelVisualization({
   return (
     <svg
       viewBox={`${-viewBoxX} ${-viewBoxY} ${viewBoxX * 2} ${viewBoxY * 2}`}
-      className="w-full"
+      className={className}
       preserveAspectRatio="xMidYMid meet"
     >
       {/* Outer ring / grid circle */}

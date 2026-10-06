@@ -668,12 +668,13 @@ function JourneyContent() {
         />
       </div>
 
-      {/* Wheel — responsive size */}
-      <div data-wheel-pdf className="flex flex-col items-center pb-0 -mt-2 -mb-1 max-h-[220px] sm:max-h-[420px] w-full max-w-[300px] sm:max-w-none mx-auto">
+      {/* Wheel — sized by viewport height so the content below always fits */}
+      <div data-wheel-pdf className="flex justify-center -mt-2 -mb-1 w-full h-[28dvh] min-h-[120px] max-h-[220px] sm:h-[34dvh] sm:max-h-[400px] [@media(max-height:700px)]:h-[26dvh]">
         <WheelVisualization
           ratings={ratings}
           currentDimension={currentDimIndex}
           size={340}
+          className="h-full w-auto max-w-full"
         />
       </div>
     </header>
@@ -682,19 +683,20 @@ function JourneyContent() {
   // ─── Rating phase — dimension intro + rating input ──────────
   if (phase === 'rating') {
     return (
-      <div className="h-screen flex flex-col bg-background overflow-hidden">
+      <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
         {activeHeader}
 
-        <main className="flex-1 flex flex-col items-center justify-center px-6 pb-10">
+        <main className="flex-1 min-h-0 overflow-y-auto">
+          <div className="min-h-full flex flex-col items-center justify-center px-6 py-6 [@media(max-height:700px)]:py-3">
           <motion.div
             key={`rating-${currentDimension.id}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="max-w-md text-center"
+            className="w-full max-w-md text-center"
           >
             <p
-              className="text-sm font-medium mb-6"
+              className="text-sm font-medium mb-4 sm:mb-6"
               style={{ color: currentDimension.color }}
             >
               {currentDimIndex + 1}/8 &middot; {currentDimension.name}
@@ -702,13 +704,14 @@ function JourneyContent() {
             <p className="font-serif text-lg leading-relaxed text-foreground">
               {currentDimension.introQuestion}
             </p>
-            <div className="mt-8">
+            <div className="mt-4 sm:mt-8 [@media(max-height:700px)]:mt-2">
               <RatingInput
                 onRate={handleRate}
                 dimensionColor={currentDimension.color}
               />
             </div>
           </motion.div>
+          </div>
         </main>
       </div>
     );
@@ -716,7 +719,7 @@ function JourneyContent() {
 
   // ─── Conversation / Reflection / Closing / Complete ─────────
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
       {activeHeader}
 
       {/* Conversation panel — scrollable */}
