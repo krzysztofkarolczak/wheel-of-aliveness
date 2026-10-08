@@ -8,14 +8,18 @@ import {
 } from '@/lib/prompts';
 import { DimensionResponse } from '@/lib/types';
 
-// Sonnet 5 (migracja z Sonnet 4.6, 25.09.2026). Sonnet 5 domyslnie mysli; wylaczamy to jawnie,
-// zeby zachowac dotychczasowe zachowanie (4.6 bez myslenia). @ai-sdk/anthropic 3.0.58 nie zna
-// jeszcze tego ID i bez maxOutputTokens przyjalby 4096 zamiast dawnego limitu modelu, stad jawny
-// limit. Nie dodawaj temperature/topP/topK ani budgetTokens — Sonnet 5 odpowiada na nie 400.
-const MODEL = anthropic('claude-sonnet-5');
+// Sonnet 5.5 (migracja z Sonnet 5, 06.10.2026; wczesniej Sonnet 4.6 -> 5, 25.09.2026).
+// Sonnet 5.5 odpowiada 400 na thinking 'disabled'; jedyny tryb bez myslenia to 'between_tools',
+// ktorego @ai-sdk/anthropic 3.0.58 nie zna. Dlatego myslenie adaptacyjne na effort 'low':
+// rozmowa i streszczenia nie potrzebuja glebokiego myslenia, a tokeny myslenia licza sie do
+// maxOutputTokens, stad zapas 16000 (SDK bez jawnego limitu przyjalby 4096 dla nieznanego ID).
+// Nie dodawaj temperature/topP/topK ani budgetTokens - Sonnet 5.5 odpowiada na nie 400.
+const MODEL = anthropic('claude-sonnet-5-5');
 const MODEL_OPTIONS = {
   maxOutputTokens: 16000,
-  providerOptions: { anthropic: { thinking: { type: 'disabled' as const } } },
+  providerOptions: {
+    anthropic: { thinking: { type: 'adaptive' as const }, effort: 'low' as const },
+  },
 };
 
 export async function POST(req: Request) {
